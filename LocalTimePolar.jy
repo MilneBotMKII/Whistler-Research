@@ -1,0 +1,107 @@
+#This script is for making polar plots with 24 hour angles as units. Used to plot whistlers by their recorded local time.
+
+#Preamble and polar axis background
+reset()
+CAxis= getParam('Color Axis','dispersionConstant','Color Axis',['dispersionConstant', 'YMD'] )
+RAxis= getParam( 'Radial Axis', 'mshell', 'Radial Axis', ['mshell', 'radius'] )
+import math as math
+
+#Some conversions from polar to cartesian coordinates, since lt is an hourangle(24 in a full circle) we use 15 degrees per hour
+#note we also include radius to handle our radial axis(scaling)
+def PolarX(hourangle, radius):
+    return(radius*sin(hourangle*15*math.pi/180))
+def PolarY(hourangle, radius):
+    return(radius*cos(hourangle*15*math.pi/180))
+    
+#This section makes the polar plot axis background, primarily written by Jeremy but tweaked to fit our circumstances
+from org.das2.graph import Painter,DasDevicePosition
+from java.awt import BasicStroke
+
+class AxisPainter( Painter ):
+    def __init__( self, plot, pole='N', flip='T' ):
+        self.plot= plot
+        self.flip= flip
+        self.pole= pole
+        self.units= plot.xaxis.range.units
+        if ( plot.yaxis.range.units!=self.units ):
+            raise Exception("units must be dimensionless or degress and match")
+        
+    def paint( self,g ):
+        g.setColor( Color.GRAY )
+        for r in [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]: #Handle radial tickmarks
+            g= g.create()
+            s= BasicStroke( 0.5,BasicStroke.CAP_BUTT,BasicStroke.JOIN_MITER,10.0, [2.,2.], 0. )
+            g.setStroke(s)
+            p= self.plot.controller.dasPlot
+            g.setClip( DasDevicePosition.toRectangle( p.getRow(), p.getColumn() ) )
+            xmin= p.XAxis.transform( self.units.createDatum( -r ) )
+            ymin= p.YAxis.transform( self.units.createDatum( r ) )
+            xmax= p.XAxis.transform( self.units.createDatum( r ) )
+            ymax= p.YAxis.transform( self.units.createDatum( -r ) )
+            g.drawOval( int( xmin ), int( ymin ), int( xmax-xmin ), int( ymax-ymin ) )
+            m='%d'
+            if ( self.pole=='S' ): m='-%d'
+            if ( r%2==0 ): #I have radial axis labels marked every 2 units, change if needed
+                g.drawString(str(r), p.XAxis.transform( self.units.createDatum( PolarX(1.5, r) )), p.YAxis.transform( self.units.createDatum(PolarY(1.5, r) ))) #I'm drawing on the 1.5 hourangle, which just happens to avoid a data cluster in our data. Change if needed
+        x0= p.XAxis.transform( self.units.createDatum(0) )
+        y0= p.YAxis.transform( self.units.createDatum(0) ) 
+        for r in xrange(0, 23): #handle hourangle tickmarks
+            t= TAU * r / 24. #Change depending on how many units of your angle are within a complete circle. 24 hourangles match 360 degrees
+            x= p.XAxis.transform( self.units.createDatum( cos( t ) * ( 10 ) ) ) #I've hardcoded in angular axis labels to appear on r=10, change if needed
+            y= p.YAxis.transform( self.units.createDatum( sin( t ) * ( 10 ) ) )  
+            g.drawLine(int(x0), int(y0), int(x), int(y)) 
+            if(r%3==0): #Draw unit labels for some subset. Here I use every multiple of 3, but any logical expression should work
+                g.drawString(str(r), p.XAxis.transform( self.units.createDatum( PolarX(r, 10) )), p.YAxis.transform( self.units.createDatum(PolarY(r, 10) )))
+
+       
+
+#plot the data, break off depending on params
+#Seems not good to have 2 independent params and if statements... 4 seperate code blocks? It works though
+if (CAxis=='dispersionConstant'):
+    localTime= getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=lt')
+    dispersionConstant= getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=dispersionConstant')
+    mshell= getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=mshell')
+    radius=getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=radius')
+    
+    if(RAxis == 'mshell'):
+        X=PolarX(localTime, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
+        Y=PolarY(localTime, mshell)
+        plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+    elif(RAxis == 'radius'):
+        X=PolarX(localTime, radius) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
+        Y=PolarY(localTime, radius)
+        plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+        
+elif(CAxis == 'YMD'): 
+    yymmdd= getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=YMD')
+    dates= [ '20220523', '20220224', '20210902', '20201230', '20201108', \
+       '20201107', '20200725', '20200602', '20200410', '20200217', \
+       '20191226', '20191103']
+    setLayoutOverplot(len(dates))
+    colors= [ 0xFF9EDAE5, 0xFF17BECF, 0xFFBCBD22, 0xFFC7C7C7, 0xFFF7B6D2, \
+              0xFFC49C94, 0xFF8C564B, 0xFF9467BD, 0xFFD62728, 0xFF98DF8A, \
+              0xFFFFBB78, 0xFFAEC7E8] #This is a bit of a hardcoded solution but it works. Just would need to add on any new dates and colors
+              #Means we can't like automatically cull out specific dates but again it works so eh
+    
+    for i in xrange(len(dates)):
+        #We basically group all the data within a YMD and plot one group at a time. URI magic below
+        localTime = getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=lt&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i]) #Thanks Jeremy for doing this in a different script
+        mshell = getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=mshell&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
+        radius = getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=radius&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
+        if(RAxis == 'mshell'):
+            X=PolarX(localTime, mshell)
+            Y=PolarY(localTime, mshell)
+            plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+        elif(RAxis == 'radius'):
+            X=PolarX(localTime, radius)
+            Y=PolarY(localTime, radius)
+            plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+
+
+ap= AxisPainter(dom.plots[0])
+dom.canvases[0].controller.dasCanvas.addBottomDecorator( ap )
+
+dom.plots[0].xaxis.visible=False
+dom.plots[0].yaxis.visible=False
+
+

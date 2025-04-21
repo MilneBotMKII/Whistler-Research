@@ -1,7 +1,21 @@
-# Whistler-Research
-This repository contains information and scripts relating to the whistler dispersion research conducted by Milne and Hospodarsky from 2022-present. 
-This acts primarily as a data repository, with a main file for data collected in late 2022-early 2023, and a new file for data collected from early 2024-present using the tool developed by Faden.
-The tool developed for the Autoplot envirnment can be found here.
-https://abbith.physics.uiowa.edu/jbf/juno/-/blob/master/u/george/2023/20230823/whistlerDigitizerFit.jy
+# Andrew Scripts
 
-Data will be updated here, as well as any information used in future papers and future scripts developed for processing data.
+Scripts and materials used in the Juno Long Dispersion Whistlers project, including a copy of whistler data. Autoplot should be able to run all scripts.
+
+##A summary of contents
+
+WhistlerData.csv : All whistler data, including ephemeris data from Juno. This should be used as the primary data source in scripts.
+
+ReproducePlot.jy : Script making log10 dispersion vs. variable plots, with YMD group coloring. Remade from a python jupyter notebook script I had.
+
+ReproduceMap.jy : Script for making footprint maps for whistlers. This includes Io or Europa footprints as well. 
+
+WhistlerNormalization.jy : Script for showing where Juno burst mode data has been taken, where whistlers have been seen, and then a normalized plot showing how likely it is a whistler(start frame) could be seen in any given burst mode snapshot within that range.
+
+NoodlePlot.jy : Script for making the magnetic Rho/Z plots showcasing whistler locations and magnetic field lines. Not sure if there is a more official name for this, I've always called it the noodle plot.
+
+LocalTimePolar.jy : Script for making polar graphs using local time hourangles. 
+
+EventsListMaker.jy : Script for making an events list for use navigating the spectra
+
+PIA07782_hires.jpg : A background image of Jupiter for use in ReproduceMap.jy. Downloaded from [FIND SOURCE].

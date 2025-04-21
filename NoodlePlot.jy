@@ -1,0 +1,66 @@
+#The Noodle Plot
+#This script plots Juno's location in a z-rho plot with regards to Jupiter's magnetic axis. Basically a way to see magnetic field lines from Jupiter. We plot whistler events on top of Juno's location so we can visualize the magnetic field lines whistlers were spotted on
+#Should find what... longitude or magnetic equivilent this is plotted onto from the magnetic field model... looks like it is RhoMag50
+
+from org.das2.util import ColorUtil
+setScriptDescription('Plot Finger events along the trajectory.')
+
+traj= getParam('traj','mlat','traj from', { 'values':['clat','mlat'] } )
+allR= getDataSet( 'https://space.physics.uiowa.edu/~jbf/juno/data/20240716/data_orbit_clat_*.cdf?R' )
+allMLat= getDataSet(  'https://space.physics.uiowa.edu/~jbf/juno/data/20240716/data_orbit_clat_*.cdf?MLAT' )
+allCLat= getDataSet(  'https://space.physics.uiowa.edu/~jbf/juno/data/20240716/data_orbit_clat_*.cdf?clat')
+
+allMLat= toRadians( allMLat )
+allCLat= toRadians( allCLat )
+    
+setLayoutOverplot(4+6+1)
+
+#polar to cartesian conversion
+if ( traj=='clat' ):
+    AllRho= allR * cos( allCLat )
+    AllZ= allR * sin( allCLat )
+    title= 'Trajectories from CLat'
+else:
+    AllRho= allR * cos( allMLat )
+    AllZ= allR * sin( allMLat )
+    title= 'Trajectories from MLat'
+    
+plot( 0, ellipse(1.0,66854.0/71492.0), isotropic=True , title=title, ytitle='Z (R!BJ!n)', xtitle='&rho; (R!BJ!n)') #Jupiter
+plot( 1, circle(0.02604, 6.02, 0))  #Io
+plot( 2, circle(0.02231, 9.59, 0)) #Europa
+plot( 3, AllRho, AllZ, renderType='scatter', symbolSize=1, isotropic=True, xrange=[-7,9], color=Color.GRAY  ) #Juno's path
+
+# home of the hdf5 file containing JRM09CAN_MagFieldLine_20190523.hdf5?ZMag50&x=RhoMag50
+mshellHome='https://space.physics.uiowa.edu/juno/mwg/Mvalue/'
+plot( 4, mshellHome + 'JRM09CAN_MagFieldLine_20190523.hdf5?ZMag06&x=RhoMag06', linewidth=0.5, symbol='None', isotropic=1, xrange=[0,50], yrange=[-24,24] )
+plot( 5, mshellHome + 'JRM09CAN_MagFieldLine_20190523.hdf5?ZMag10&x=RhoMag10', linewidth=0.5, symbol='None' )
+plot( 6, mshellHome + 'JRM09CAN_MagFieldLine_20190523.hdf5?ZMag20&x=RhoMag20', linewidth=0.5, symbol='None' )
+plot( 7, mshellHome + 'JRM09CAN_MagFieldLine_20190523.hdf5?ZMag30&x=RhoMag30', linewidth=0.5, symbol='None' )
+plot( 8, mshellHome + 'JRM09CAN_MagFieldLine_20190523.hdf5?ZMag40&x=RhoMag40', linewidth=0.5, symbol='None' )
+plot( 9, mshellHome + 'JRM09CAN_MagFieldLine_20190523.hdf5?ZMag50&x=RhoMag50', linewidth=0.5, symbol='None' )
+
+ff='https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv'
+
+#wonder which is prefered, this or the URI column pull all at once. This does look nicer though so maybe I'll come back in and update all my scripts to have the file as a variable and columns pulled out like below
+
+radius= getDataSet( ff + '?radius' )
+mlat= getDataSet( ff + '?mlat' )
+long= getDataSet( ff + '?longitude' )
+lat= getDataSet( ff + '?lat'  )
+lt= getDataSet( ff + '?mlt'  )
+clat=  getDataSet( ff + '?centrifugal_latitude'  )
+dispersionConstant= getDataSet( ff + '?dispersionConstant' )
+
+times= xtags(radius)
+clat= toRadians( clat )
+mlat= toRadians( mlat )
+
+if ( traj=='clat' ): #whistler events need to be transformed too
+    Rho=   radius * cos( clat )
+    Z=     radius * sin( clat )
+else:
+    Rho=   radius * cos( mlat )
+    Z=     radius * sin( mlat )
+    
+plot( 10, Rho, Z, dispersionConstant, symbolSize=3, isotropic=True, xrange=[-7,9]) #whistler events
+
