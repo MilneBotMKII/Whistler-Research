@@ -1,5 +1,3 @@
-#This script looks at burst mode data windows, and normalizes where we see whistlers by how many times Juno was taking burst mode data there
-binSize= getParam( 'Bin Size', 0.1, 'Bin Size', [0.1, 0.01] )
 mshells= getDataSet( 'file:///home/jbf/project/juno/waveformIntervals/ap1/waveforms_$x.dat?field2' )
 whistlers= getDataSet( 'file:///home/jbf/project/juno/u/andrew/2025/20250225/WhistlerPlots/JeremyNewPlots.csv?column=mshell&time=YMD&timeFormat=$Y$m$d+$H$M$S' )
 
@@ -9,8 +7,8 @@ print 'mshells: ', mshells
 mshells= mshells[where(within( xtags(mshells),r ))]
 print 'mshells included: ', mshells
 
-normalizeBy= histogram(mshells,0.005,10.005,binSize) #start and end values are hardcoded but it fits our data so it's good
-whistlersByMShell= histogram(whistlers,0.005,10.005,binSize)
+normalizeBy= histogram(mshells,0.005,10.005,0.1)
+whistlersByMShell= histogram(whistlers,0.005,10.005,0.1)
 
 p,_= plot( 0, whistlersByMShell )
 annotation( 0, plotId=p.id, anchorPosition='NW', text='Whistlers Observed' )

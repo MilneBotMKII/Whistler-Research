@@ -1,14 +1,10 @@
-#This script generates an Events List to be used within Autoplot, to find digitized whistlers again in the spectra. 
-
-#Read in whistler data
-ymd=  getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?timeFormat=$Y$m$d&depend0=0&column=0')
-startt= getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=2')
-stopt= getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=3')
-idnum = getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=4')
-#Wanted to try and include some more information in the label, but thought it was probably just too cluttered
-#typ= getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?timeFormat=$Y$m$d+$S&depend0=0&column=0')
-#EorM = getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=7')
-#BorS = getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=6')
+ymd=  getDataSet(PWD+'JeremyNewPlots.csv?timeFormat=$Y$m$d&depend0=0&column=0')
+startt= getDataSet(PWD+'JeremyNewPlots.csv?column=2')
+stopt= getDataSet(PWD+'JeremyNewPlots.csv?column=3')
+#typ= getDataSet(PWD+'JeremyNewPlots.csv?timeFormat=$Y$m$d+$S&depend0=0&column=0')
+idnum = getDataSet(PWD+'JeremyNewPlots.csv?column=4')
+#EorM = getDataSet(PWD+'JeremyNewPlots.csv?column=7')
+#BorS = getDataSet(PWD+'JeremyNewPlots.csv?column=6')
 
 ymd= xtags(ymd)
 
@@ -16,10 +12,9 @@ startt= ymd + dataset( startt, units=Units.seconds )
 stopt= ymd + dataset( stopt, units=Units.seconds )
 #This is very dumb but, for example, before doing this step idnum[0] would actually print 'idnum=1.0' and not just '1.0'
 #I really don't know what's going on but it converts some Units. I checked the available ones and dimensionless didn't give the straight number either
-#If it's dumb and works, it can't be that dumb
+#If it's dumb and works, it can't be that dumb 
 idnum= idnum + 1 - 1
 
-#Output the events list csv
 out= open(URL(PWD).path + 'outp.events.csv','w')
 for i in xrange(len(startt)):
     startt[i]= startt[i] - dataset( 30, units=Units.seconds )

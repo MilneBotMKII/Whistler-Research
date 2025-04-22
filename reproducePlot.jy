@@ -1,18 +1,16 @@
-#This script makes simple dispersion constant vs. variable plots, with data points colored in groups by their YMD tag.
-
 from org.das2.graph import LegendPosition
-
+p= getParam( 'p', 0, 'parameter p (default=0.0)' , [0, 1, 2, 3, 4, 5])
 source= getParam('Variable','altitude','X Axis',['altitude', 'radius', 'mshell', 'io_phase', 'lt', 'mlt', 'lat', 'footlat', 'centrifugal_lat', 'jovigraphic_lat', 'longitude', 'footlon'] )
-yymmdd= getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=YMD')
+#print(source)
+#print(getDataSet(PWD + 'JeremyNewPlots.csv?column=YMD'))
+yymmdd= getDataSet(PWD + 'JeremyNewPlots.csv?column=YMD')
 
-s= sort(yymmdd)
-u= uniq(yymmdd,s)
+#Just a 1 time run to get the unique YMDs
+#s= sort(yymmdd)
+#u= uniq(yymmdd,s)
 #for u1 in u:
 #    print '%d' % yymmdd[u1]
-
-#I'm guessing Jeremy took the printout of the unique dates in our list, wrote it down as dates here, and that's what we use
-#If we find whistlers in another YMD we'll have to change this again but works for now
-
+    
 dates= [ '20220523', '20220224', '20210902', '20201230', '20201108', \
    '20201107', '20200725', '20200602', '20200410', '20200217', \
    '20191226', '20191103', '20190327' ]
@@ -20,9 +18,9 @@ colors= [ 0xFF9EDAE5, 0xFF17BECF, 0xFFBCBD22, 0xFFC7C7C7, 0xFFF7B6D2, \
           0xFFC49C94, 0xFF8C564B, 0xFF9467BD, 0xFFD62728, 0xFF98DF8A, \
           0xFFFFBB78, 0xFFAEC7E8, 0xFF1F77B4 ] #This is a bit of a hardcoded solution but it works. Just would need to add on any new dates and colors
           #Means we can't like automatically cull out specific dates but again it works so eh
-setLayoutOverplot( len(dates) )
+#setLayoutOverplot( len(dates) )
 
-for i in xrange(len(dates)): #plot our data
-    plot( i, 'https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=dispersionConstant&depend0=' + source + '&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i], \
-          symbolSize=10, lineStyle='none', color= colors[i], yrange=[2e1,9e3], ylog=True, legendLabel=dates[i] )
-dom.plots[0].legendPosition= LegendPosition.OutsideNE
+for i in xrange(len(dates)):
+    plot( i, PWD + 'JeremyNewPlots.csv?column=dispersionConstant&depend0=' + source + '&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i], \
+          symbolSize=10, lineStyle='none', color= colors[i], yrange=[2e1,9e3], ylog=True, legendLabel=dates[i], xtitle=source, ytitle='Dispersion Constant' , overplotOf=dom.plots[p])
+dom.plots[p].legendPosition= LegendPosition.OutsideNE

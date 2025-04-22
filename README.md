@@ -4,7 +4,9 @@ Scripts and materials used in the Juno Long Dispersion Whistlers project, includ
 
 ##A summary of contents
 
-WhistlerData.csv : All whistler data, including ephemeris data from Juno. This should be used as the primary data source in scripts.
+FullDataWhistler.csv : A complete list of all whistler data I cataloged, including short dispersion whistlers.
+
+WhistlerData.csv : A truncation of FullDataWhistler.csv, removing short dispersion whistlers. This should be what scripts call for
 
 ReproducePlot.jy : Script making log10 dispersion vs. variable plots, with YMD group coloring. Remade from a python jupyter notebook script I had.
 

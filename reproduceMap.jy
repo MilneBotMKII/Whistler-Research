@@ -1,28 +1,26 @@
-#This script plots whistler footprints(whistler recorded location backtracked along the magnetic field line) on a map of Jupiter, as well as Io and Europa footprints(also magnetic field line backtracking)
-#I should put in here what it backtracks to... an altitude? air pressure?
-
 p1= getParam('Variable', 'None','Moon Footprint',['Io', 'Europa', 'None'] )
 
-latitude=getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=footlat')
-longitude=getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=footlon')
-dispersionConstant=getDataSet('https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/WhistlerData.csv?column=dispersionConstant')
+latitude=getDataSet(PWD + 'JeremyNewPlots.csv?column=footlat')
+longitude=getDataSet(PWD + 'JeremyNewPlots.csv?column=footlon')
+dispersionConstant=getDataSet(PWD + 'JeremyNewPlots.csv?column=dispersionConstant')
 
 # make a single plot with three different things plotted.
 setLayoutOverplot(4)
 
-plot( 0, 'https://research-git.uiowa.edu/space-physics/juno/team/-/blob/main/AndrewWhistlerScripts/PIA07782_hires.jpg?xaxis=[0, 0, 360,  2048]&yaxis=[-90, 0, 90, 1024]') #Jupiter background image. I think where we downloaded it from was longitude alligned, and it was some NASA site. If I find it again I'll link it
-plot( 1, longitude, latitude, dispersionConstant, symbolSize=10) #Whistler locations
-dom.plots[0].xaxis.flipped=True #To follow convention we flip XAxis
+plot( 0, 'https://research-git.uiowa.edu/abbith/juno/-/blob/main/resources/PIA07782_hires.jpg?xaxis=[0, 0, 360,  2048]&yaxis=[-90, 0, 90, 1024]')
+#I can see it on Gitlab but not anywhere I can access through a pathname. So I downloaded and am opening it locally
+plot( 1, longitude, latitude, dispersionConstant, symbolSize=10, ztitle = 'Dispersion Constant', xtitle = 'SYS III Longitude', ytitle = 'Latitude')
+dom.plots[0].xaxis.flipped=True
 
-if (p1=='Io'): #Someone had these hdf5 files made, which included footprints. I think Masafumi? Double check
+if (p1=='Io'):
   ds= getDataSet('file:/opt/project/juno/data/models/uiowa_footprint/hdf5/ext/JunoFoot_Ext_PJ*_20241120_all.hdf5?NorthIoFootLatUV&x=NorthIoFootWLonUV' )
-  plot( 2, ds )
+  plot( 2, ds, title='Io Footprint' )
 
   ds= getDataSet('file:/opt/project/juno/data/models/uiowa_footprint/hdf5/ext/JunoFoot_Ext_PJ*_20241120_all.hdf5?SouthIoFootLatUV&x=SouthIoFootWLonUV' )
   plot( 3, ds )
 elif (p1=='Europa'):
   ds= getDataSet('file:/opt/project/juno/data/models/uiowa_footprint/hdf5/ext/JunoFoot_Ext_PJ*_20241120_all.hdf5?NorthEuFootLatUV&x=NorthEuFootWLonUV' )
-  plot( 2, ds )
+  plot( 2, ds, title='Europa Footprint' )
 
   ds= getDataSet('file:/opt/project/juno/data/models/uiowa_footprint/hdf5/ext/JunoFoot_Ext_PJ*_20241120_all.hdf5?SouthEuFootLatUV&x=SouthEuFootWLonUV' )
   plot( 3, ds )
