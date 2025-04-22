@@ -1,17 +1,20 @@
+reset()
 p1= getParam('Variable', 'None','Moon Footprint',['Io', 'Europa', 'None'] )
-
-latitude=getDataSet(PWD + 'JeremyNewPlots.csv?column=footlat')
-longitude=getDataSet(PWD + 'JeremyNewPlots.csv?column=footlon')
-dispersionConstant=getDataSet(PWD + 'JeremyNewPlots.csv?column=dispersionConstant')
+ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
+latitude=getDataSet(ff + '?column=footlat')
+longitude=getDataSet(ff + '?column=footlon')
+dispersionConstant=getDataSet(ff + '?column=dispersionConstant')
 
 # make a single plot with three different things plotted.
 setLayoutOverplot(4)
 
+#plot background jupiter image, whistler locations
 plot( 0, 'https://research-git.uiowa.edu/abbith/juno/-/blob/main/resources/PIA07782_hires.jpg?xaxis=[0, 0, 360,  2048]&yaxis=[-90, 0, 90, 1024]')
-#I can see it on Gitlab but not anywhere I can access through a pathname. So I downloaded and am opening it locally
 plot( 1, longitude, latitude, dispersionConstant, symbolSize=10, ztitle = 'Dispersion Constant', xtitle = 'SYS III Longitude', ytitle = 'Latitude')
 dom.plots[0].xaxis.flipped=True
+#find a way to set the axis range so it consistantly makes 0-360 and -90-90
 
+#Then we plot both the north and south pole components of a moon footprint
 if (p1=='Io'):
   ds= getDataSet('file:/opt/project/juno/data/models/uiowa_footprint/hdf5/ext/JunoFoot_Ext_PJ*_20241120_all.hdf5?NorthIoFootLatUV&x=NorthIoFootWLonUV' )
   plot( 2, ds, title='Io Footprint' )

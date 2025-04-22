@@ -1,5 +1,8 @@
+reset()
+binSize= getParam( 'binSize', 0.1)
 mshells= getDataSet( 'file:///home/jbf/project/juno/waveformIntervals/ap1/waveforms_$x.dat?field2' )
-whistlers= getDataSet( 'file:///home/jbf/project/juno/u/andrew/2025/20250225/WhistlerPlots/JeremyNewPlots.csv?column=mshell&time=YMD&timeFormat=$Y$m$d+$H$M$S' )
+ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
+whistlers=getDataSet(ff + '?column=mshell&time=YMD&timeFormat=$Y$m$d+$H$M$S')
 
 r= extent(xtags(whistlers))
 
@@ -7,8 +10,8 @@ print 'mshells: ', mshells
 mshells= mshells[where(within( xtags(mshells),r ))]
 print 'mshells included: ', mshells
 
-normalizeBy= histogram(mshells,0.005,10.005,0.1)
-whistlersByMShell= histogram(whistlers,0.005,10.005,0.1)
+normalizeBy= histogram(mshells,0.005,10.005,binSize)
+whistlersByMShell= histogram(whistlers,0.005,10.005,binSize)
 
 p,_= plot( 0, whistlersByMShell )
 annotation( 0, plotId=p.id, anchorPosition='NW', text='Whistlers Observed' )

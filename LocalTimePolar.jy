@@ -1,12 +1,10 @@
-#Preamble
 reset()
 CAxis= getParam('Color Axis','dispersionConstant','Color Axis',['dispersionConstant', 'YMD'] )
 RAxis= getParam( 'Radial Axis', 'mshell', 'Radial Axis', ['mshell', 'radius'] )
+ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
 import math as math
 
-#Just set it really big since we don't know how many plot layers we'll have 
-
-#Some conversions from polar to cartesian coordinates, since lt is an hourangle(24 in a full circle)
+#Conversions from polar to cartesian coordinates, since lt is an hourangle(24 in a full circle we use 15 degrees per unit
 def PolarX(hourangle, radius):
     return(radius*sin(hourangle*15*math.pi/180))
 def PolarY(hourangle, radius):
@@ -57,10 +55,10 @@ class AxisPainter( Painter ):
 #plot the data, break off depending on params
 #Seems not good to have 2 independent params and if statements... 4 seperate code blocks? whatever
 if (CAxis=='dispersionConstant'):
-    localTime= getDataSet(PWD + 'JeremyNewPlots.csv?column=lt')
-    dispersionConstant= getDataSet(PWD + 'JeremyNewPlots.csv?column=dispersionConstant')
-    mshell= getDataSet(PWD + 'JeremyNewPlots.csv?column=mshell')
-    radius=getDataSet(PWD + 'JeremyNewPlots.csv?column=radius')
+    localTime= getDataSet(ff + '?column=lt')
+    dispersionConstant= getDataSet(ff + '?column=dispersionConstant')
+    mshell= getDataSet(ff + '?column=mshell')
+    radius=getDataSet(ff + '?column=radius')
     
     if(RAxis == 'mshell'):
         X=PolarX(localTime, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
@@ -72,7 +70,7 @@ if (CAxis=='dispersionConstant'):
         plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
         
 elif(CAxis == 'YMD'):  
-    yymmdd= getDataSet(PWD + 'JeremyNewPlots.csv?column=YMD')
+    yymmdd= getDataSet(ff + '?column=YMD')
     dates= [ '20220523', '20220224', '20210902', '20201230', '20201108', \
        '20201107', '20200725', '20200602', '20200410', '20200217', \
        '20191226', '20191103']
@@ -84,9 +82,9 @@ elif(CAxis == 'YMD'):
     
     for i in xrange(len(dates)):
         #We basically group all the data within a YMD and plot one group at a time. URI magic below
-        localTime = getDataSet(PWD + 'JeremyNewPlots.csv?column=lt&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i]) #Thanks Jeremy for doing this in a different script
-        mshell = getDataSet(PWD + 'JeremyNewPlots.csv?column=mshell&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
-        radius = getDataSet(PWD + 'JeremyNewPlots.csv?column=radius&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
+        localTime = getDataSet(ff + '?column=lt&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i]) #Thanks Jeremy for doing this in a different script
+        mshell = getDataSet(ff + '?column=mshell&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
+        radius = getDataSet(ff + '?column=radius&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
         if(RAxis == 'mshell'):
             X=PolarX(localTime, mshell)
             Y=PolarY(localTime, mshell)
