@@ -6,7 +6,9 @@ Scripts and materials used in the Juno Long Dispersion Whistlers project, includ
 
 FullDataWhistler.csv : A complete list of all whistler data I cataloged, including short dispersion whistlers.
 
-WhistlerData.csv : A truncation of FullDataWhistler.csv, removing short dispersion whistlers. This should be what scripts call for
+WhistlerData.csv : A truncation of FullDataWhistler.csv, removing short dispersion whistlers. This should be what scripts call for.
+
+whistlerDigitizerFit.jy: Script made by Jeremy Faden to plot Juno's radio spectra and place points to fit whistler features to the dispersion equation. This is the script used to obtain all whistler times and dispersions.
 
 ReproducePlot.jy : Script making log10 dispersion vs. variable plots, with YMD group coloring. Remade from a python jupyter notebook script I had.
 
