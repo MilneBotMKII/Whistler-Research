@@ -22,4 +22,4 @@ LocalTimePolar.jy : Script for making polar graphs using local time hourangles.
 
 EventsListMaker.jy : Script for making an events list for use navigating the spectra
 
-PIA07782_hires.jpg : A background image of Jupiter for use in ReproduceMap.jy. Downloaded from [FIND SOURCE].
+PIA07782_hires.jpg : A background image of Jupiter for use in ReproduceMap.jy. Downloaded from https://www.jpl.nasa.gov/images/pia07782-cassinis-best-maps-of-jupiter-cylindrical-map/.
