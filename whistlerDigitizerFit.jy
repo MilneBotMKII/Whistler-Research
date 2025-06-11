@@ -1,0 +1,212 @@
+from javax.swing import JPanel,JCheckBox,ButtonGroup
+from java.awt import FlowLayout
+from org.das2.datum import DatumUtil
+from org.das2.qds import SemanticOps
+from org.das2.qds.util import LinFit
+setScriptTitle('whistler digitizer')
+setScriptDescription('''Demo of how a digitizer which assumes a whistler 
+model can be used to digitize data.''')
+
+from org.das2.components import DataPointRecorder
+from org.das2.graph import Painter
+from org.das2.graph import SeriesRenderer
+from org.das2.util import ColorUtil
+from java.awt.geom import Ellipse2D
+
+source= getParam('source','survey','Spectrogram Source',['survey','burst','burst-hi'] )
+
+# [ '2020-07-25T07:02Z/07:03Z','2020-07-25T02:41Z/07:43Z' ] 
+tr= getParam( 'timeRange', '2020-07-25T07:02Z/07:03Z', 'Time Range to Plot',{'examples':['2025-03-02 17:36:38 to 17:36:50','2020-07-25T07:02Z/07:03Z']} )
+
+eu= Units.nominal('species')
+speciesE= eu.createDatum('E')
+speciesB= eu.createDatum('B')
+
+keyu= Units.nominal('key')
+keyu.createDatum('1')
+keyu.createDatum('2')
+keyu.createDatum('3')
+keyu.createDatum('4')
+keyu.createDatum('5')
+
+dpr= DataPointRecorder()
+dpr.setSorted(False)
+dpr.setTimeFormat('$Y-$m-$dT$H:$M:$S.$(subsec;places=6)')
+
+addTab( 'digitizer', dpr )
+
+keyPanel= JPanel()
+keyPanel.setLayout( FlowLayout() )
+bg= ButtonGroup()
+for i in xrange(1,6):
+    cb= JCheckBox(text='%d' % i, selected=i==1 )
+    bg.add(cb)
+    keyPanel.add( cb )
+    
+getApplication().setBottomPanel(keyPanel)
+reset()
+
+if source=='survey':
+   #ds= getDataSet('vap+das2server:https://jupiter.physics.uiowa.edu/das/server?B&dataset=Juno/WAV/Survey&start_time=2020-07-25T07:02:00.000Z&end_time=2020-07-25T07:03:00.000Z' )
+   plot( 0, 'vap+das2server:https://jupiter.physics.uiowa.edu/das/server?E&dataset=Juno/WAV/Survey',tr )
+   plot( 1, 'vap+das2server:https://jupiter.physics.uiowa.edu/das/server?B&dataset=Juno/WAV/Survey',tr )
+elif source=='burst-hi':
+   plot( 0, 'vap+das2server:https://jupiter.physics.uiowa.edu/das/server?LFR_HI_E&dataset=Juno/WAV/Burst_Waveforms',tr )
+   dom.plotElements[0].component="|fftPower(256,2,'Hanning')|expandToFillGaps(0.9)"
+   plot( 1, 'vap+das2server:https://jupiter.physics.uiowa.edu/das/server?LFR_LO_B&dataset=Juno/WAV/Burst_Waveforms',tr )
+   dom.plotElements[1].component="|fftPower(256,2,'Hanning')|expandToFillGaps(0.9)"
+else:
+   plot( 0, 'vap+das2server:https://jupiter.physics.uiowa.edu/das/server?LFR_LO_E&dataset=Juno/WAV/Burst_Waveforms',tr )
+   dom.plotElements[0].component="|fftPower(256,2,'Hanning')|expandToFillGaps(0.9)"
+   plot( 1, 'vap+das2server:https://jupiter.physics.uiowa.edu/das/server?LFR_LO_B&dataset=Juno/WAV/Burst_Waveforms',tr )
+   dom.plotElements[1].component="|fftPower(256,2,'Hanning')|expandToFillGaps(0.9)"
+   
+waitUntilIdle()
+   
+plotE= dom.plots[0]
+plotB= dom.plots[1]
+   
+def paintWhistler( g, plot, xa, ya, tt, yy, size, eb ):
+    'paint the whistler at the data coordinates'
+    rend= SeriesRenderer()
+    rend.setLineWidth(size)
+    rend.setColor(g.color)
+    rend.setParent(plot.controller.dasPlot)
+    yy= putProperty( yy, QDataSet.UNITS, Units.hertz )
+    rend.setDataSet(dataset(tt,yy))
+    rend.updatePlotImage( xa, ya, None ) 
+    rend.render( g.create(), xa, ya )
+    
+class FeedbackPainter( Painter ):
+    def __init__(self,eb):
+        self.eb=eb
+    def paint( self, g ):
+        if ( self.eb=='E' ):
+            plot= plotE
+            xa= plotE.xaxis.controller.dasAxis
+            ya= plotE.yaxis.controller.dasAxis
+        elif ( self.eb=='B' ):
+            plot= plotB
+            xa= plotB.xaxis.controller.dasAxis
+            ya= plotB.yaxis.controller.dasAxis
+        ds= dpr.getDataPoints()
+        if ( ds==None ):
+            return
+                    
+        r= where( ds[:,2].eq(self.eb) )
+        ds= ds[r]
+        
+        for d in ds:
+            g.color= ColorUtil.decodeColor('blue')
+            xpix= xa.transform(d[0])
+            ypix= ya.transform(d[1])
+            g.fill( Ellipse2D.Double( xpix-2, ypix-2, 5, 5 ) )
+        dsSelect= dpr.getSelectedDataPoints()
+        if ( dsSelect!=None ): 
+            eb = unbundle(dsSelect,2)
+            u= SemanticOps.getUnits(eb) 
+            if self.eb=='B':
+                r= where( eb.eq(speciesB.doubleValue(eu)) ) #kludge
+            else:
+                r= where( eb.eq(speciesE.doubleValue(eu)) )#kludge
+            #r= where( eb.eq(self.eb) )
+            dsSelect= dsSelect[r]
+            for d in dsSelect:
+                g.color= ColorUtil.decodeColor('white')
+                xpix= xa.transform(d[0])
+                ypix= ya.transform(d[1])
+                g.fill( Ellipse2D.Double( xpix-4, ypix-4, 9, 9 ) )
+                g.color= ColorUtil.decodeColor('blue')
+                xpix= xa.transform(d[0])
+                ypix= ya.transform(d[1])
+                g.fill( Ellipse2D.Double( xpix-2, ypix-2, 5, 5 ) )
+        
+        # sort points by times.
+        xx= ds[:,0]
+        s= sort(xx)
+        ds=ds[s]
+
+        # pull out each of the N whistlers
+        k= ds[:,3]   
+        s= sort(k)
+        uu= uniqValues(k,s)
+
+        for u in uu:
+            r= where( k.eq(u) )
+            xx= ds[r,0]
+            yy= ds[r,1]
+            x0= xx[0]
+            xx= xx-x0
+            xx= convertUnitsTo( xx, Units.seconds )
+            xx= putProperty( xx, QDataSet.UNITS, None )
+            yy= putProperty( yy, QDataSet.UNITS, None )
+            yy= 1/sqrt(yy)
+            
+            lf= LinFit( xx, yy )
+            xx= linspace( xx[0], xx[-1], 100 ) 
+            xx= putProperty( xx, QDataSet.UNITS, Units.seconds )
+            yfit= lf.slope * ( xx ) + lf.intercept
+            yfit= 1/(yfit)**2
+            xx = putProperty( xx, QDataSet.UNITS, Units.seconds )
+            xx = xx + x0
+            g.color= ColorUtil.LIGHT_SALMON
+            paintWhistler( g, plot, xa, ya, xx, yfit, 3, self.eb )
+
+        ds= dpr.getDataPoints()
+        r= where( ds[:,2].eq(self.eb) )
+        if len(r)>0:
+            if ( ds[r[0],4] !=1/lf.slope ):
+                ds[r,4]= 1/lf.slope 
+                dpr.deleteAllRows()
+                dpr.addDataPoints(ds)
+        
+        
+plotE.controller.dasPlot.setTopDecorator( FeedbackPainter('E') )
+plotB.controller.dasPlot.setTopDecorator( FeedbackPainter('B') )
+
+# we need to listen for updates from the DataPointRecorder, when the selection changes.
+from org.das2.dataset import DataSetUpdateListener
+class MyDataSetUpdateListener( DataSetUpdateListener ):
+    def dataSetUpdated( self, e ):
+        plotE.controller.dasPlot.invalidateCacheImage()
+        plotB.controller.dasPlot.invalidateCacheImage()
+        dom.canvases[0].controller.dasCanvas.repaint()
+dpr.addSelectedDataSetUpdateListener( MyDataSetUpdateListener() )
+
+def getKeyChar():
+    for b in bg.getElements():
+        if ( b.selected ):
+            return b.text
+            
+def pointSelectedE( ev ):
+    x1= ev.finishX
+    y1= ev.finishY
+    y1= convertUnitsTo(y1,Units.hertz)
+    eb='E'
+    keyChar= getKeyChar()
+    keyu.createDatum(keyChar)
+    rec= bundle( dataset(x1,name='X1'),
+                 dataset(y1,name='Y1',format='%.6f'), 
+                 dataset(speciesE,name='Species'),
+                 dataset(keyChar,units=keyu,name='Key'),
+                 dataset(0,name='D',format='%.9f') )
+    dpr.addDataPoint( rec )
+
+def pointSelectedB( ev ):
+    x1= ev.finishX
+    y1= ev.finishY
+    y1= convertUnitsTo(y1,Units.hertz)
+    eb='B'
+    keyChar= getKeyChar()
+    keyu.createDatum(keyChar)
+    rec= bundle( dataset(x1,name='X1'),
+                 dataset(y1,name='Y1',format='%.6f'), 
+                 dataset(speciesB,name='Species'),
+                 dataset(keyChar,units=keyu,name='Key'),
+                 dataset(0,name='D',format='%.9f') )
+    dpr.addDataPoint( rec )
+
+mmEE= addMouseModule( plotE, 'whistler digitizer', pointSelectedE )
+mmBB= addMouseModule( plotB, 'whistler digitizer', pointSelectedB )
+
+
