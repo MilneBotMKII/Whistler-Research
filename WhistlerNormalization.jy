@@ -1,8 +1,5 @@
 reset()
-#Some notes on what I need to change
-#Right now the 'whistlers' group is not right. It is using every whistler not separating combined electric & magnetic, and it doesn't take into account multi-second whistlers
-#I think a better plot would show (on plot 3) the likelyhood a burst data snapshot within a given mshell contains a whistler
-#So we need to plot the whistlerID's within a given mshell, corrected for the roof function of end-start time. Though lets maybe make this an optional setting
+#A quick note, this is currently not handling Survey mode vs. Burst Mode. I don't think it's 100% needed though, since with the whistlerCorrection it takes the whislter length into account
 
 #Options
 binSize= getParam( 'binSize', 0.1, 'Size of mshell bin to use in histograms')
@@ -76,39 +73,4 @@ annotation( 2, plotId=p.id, anchorPosition='NW', text='Whistlers (% of observati
 
 bind( dom.plots[0].xaxis, 'range', dom.plots[1].xaxis, 'range' )
 bind( dom.plots[0].xaxis, 'range', dom.plots[2].xaxis, 'range' )
-
-
-
-
-
-
-
-#Data= [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-#Index=[0, 1, 1, 2, 3, 3, 4, 5, 6, 6]
-#
-#IndexDS = dataset(Index)
-#
-#
-#
-#
-#print('Data: ', Data)
-#print('Index: ', Index)
-#
-#for i in uniqValues(IndexDS, None):
-#    temp = where(eq(IndexDS, dataset(i)))
-#    print('The unique value is ', i)
-#    for j in temp:
-#        print(j)
-##The above script sucessfully obtains the unique Index values, and gives where their indicies in Index. With that, we can now pull Data matching our Index
-##Lets do an example and return the average result of Data at our Index
-#print('====================')
-#
-#for i in uniqValues(IndexDS, None):
-#    temp = where(eq(IndexDS, dataset(i)))
-#    #temp is the index values we need to access.
-#    tempData=[]
-#    for j in temp:
-#        tempData=append(dataset(Data[int(j)]), dataset(tempData))
-#    print(mean(tempData))
-#
 
