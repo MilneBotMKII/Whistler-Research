@@ -23,7 +23,7 @@ else:
 plot( 0, ellipse(1.0,66854.0/71492.0), isotropic=True , title=title, ytitle='Z (R!BJ!n)', xtitle='&rho; (R!BJ!n)')
 plot( 1, circle(0.02604, 6.02, 0))
 plot( 2, circle(0.02231, 9.59, 0))
-plot( 3, AllRho, AllZ, renderType='scatter', symbolSize=1, isotropic=True, xrange=[-7,9], color=Color.GRAY  )
+plot( 3, AllRho, AllZ, symbolSize=1, isotropic=True, xrange=[-7,9], color=Color.GRAY  )
 
 # home of the hdf5 file containing JRM09CAN_MagFieldLine_20190523.hdf5?ZMag50&x=RhoMag50
 mshellHome='https://space.physics.uiowa.edu/juno/mwg/Mvalue/'
