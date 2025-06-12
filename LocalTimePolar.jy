@@ -1,7 +1,7 @@
 reset()
 CAxis= getParam('Color Axis','dispersionConstant','Color Axis',['dispersionConstant', 'YMD'] )
 RAxis= getParam( 'Radial Axis', 'mshell', 'Radial Axis', ['mshell', 'radius'] )
-ThetaAxis= getParam( 'Angular Axis', 'io_phase', 'Angular Axis', ['lt', 'mlt', 'io_phase'] )
+ThetaAxis= getParam( 'Angular Axis', 'lt', 'Angular Axis', ['lt', 'mlt', 'io_phase'] )
 ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
 import math as math
 
@@ -123,17 +123,38 @@ elif(CAxis == 'YMD'):
     for i in xrange(len(dates)):
         #We basically group all the data within a YMD and plot one group at a time. URI magic below
         localTime = getDataSet(ff + '?column=lt&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i]) #Thanks Jeremy for doing this in a different script
+        magneticlocalTime = getDataSet(ff + '?column=mlt&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
+        iophase = getDataSet(ff + '?column=io_phase&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
         mshell = getDataSet(ff + '?column=mshell&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
         radius = getDataSet(ff + '?column=radius&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i])
-        if(RAxis == 'mshell'):
-            X=PolarX(localTime, mshell)
-            Y=PolarY(localTime, mshell)
-            plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
-        elif(RAxis == 'radius'):
-            X=PolarX(localTime, radius)
-            Y=PolarY(localTime, radius)
-            plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
-
+        if(ThetaAxis == 'lt'):
+            if(RAxis == 'mshell'):
+                X=PolarX(localTime, mshell)
+                Y=PolarY(localTime, mshell)
+                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+            elif(RAxis == 'radius'):
+                X=PolarX(localTime, radius)
+                Y=PolarY(localTime, radius)
+                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+        elif(ThetaAxis == 'mlt'):
+            if(RAxis == 'mshell'):
+                X=PolarX(magneticlocalTime, mshell)
+                Y=PolarY(magneticlocalTime, mshell)
+                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+            elif(RAxis == 'radius'):
+                X=PolarX(magneticlocalTime, radius)
+                Y=PolarY(magneticlocalTime, radius)
+                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+                
+        elif(ThetaAxis == 'io_phase'):
+            if(RAxis == 'mshell'):
+                X=PolarX(iophase * 24/360, mshell)
+                Y=PolarY(iophase * 24/360, mshell)
+                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+            elif(RAxis == 'radius'):
+                X=PolarX(iophase * 24/360, radius)
+                Y=PolarY(iophase * 24/360, radius)
+                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
 
 ap= AxisPainter(dom.plots[0])
 dom.canvases[0].controller.dasCanvas.addBottomDecorator( ap )
