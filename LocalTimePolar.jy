@@ -1,6 +1,7 @@
 reset()
 CAxis= getParam('Color Axis','dispersionConstant','Color Axis',['dispersionConstant', 'YMD'] )
 RAxis= getParam( 'Radial Axis', 'mshell', 'Radial Axis', ['mshell', 'radius'] )
+ThetaAxis= getParam( 'Angular Axis', 'io_phase', 'Angular Axis', ['lt', 'mlt', 'io_phase'] )
 ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
 import math as math
 
@@ -41,43 +42,82 @@ class AxisPainter( Painter ):
             if ( r%2==0 ): 
                 g.drawString(str(r), p.XAxis.transform( self.units.createDatum( PolarX(1.5, r) )), p.YAxis.transform( self.units.createDatum(PolarY(1.5, r) )))
         x0= p.XAxis.transform( self.units.createDatum(0) )
-        y0= p.YAxis.transform( self.units.createDatum(0) ) 
-        for r in xrange(0, 23): #handle hourangle tickmarks
-            t= TAU * r / 24.
-            x= p.XAxis.transform( self.units.createDatum( cos( t ) * ( 10 ) ) )
-            y= p.YAxis.transform( self.units.createDatum( sin( t ) * ( 10 ) ) )  
-            g.drawLine(int(x0), int(y0), int(x), int(y)) 
-            if(r%3==0): #Draw unit labels for some subset #here I use every multiple of 3
-                g.drawString(str(r), p.XAxis.transform( self.units.createDatum( PolarX(r, 10) )), p.YAxis.transform( self.units.createDatum(PolarY(r, 10) )))
-
+        y0= p.YAxis.transform( self.units.createDatum(0) )
+        if(ThetaAxis in ('lt', 'mlt')):
+            for r in xrange(0, 24): #handle hourangle tickmarks
+                t= TAU * r / 24.
+                x= p.XAxis.transform( self.units.createDatum( cos( t ) * ( 10 ) ) )
+                y= p.YAxis.transform( self.units.createDatum( sin( t ) * ( 10 ) ) )  
+                g.drawLine(int(x0), int(y0), int(x), int(y)) 
+                if(r%3==0): #Draw unit labels for some subset #here I use every multiple of 3
+                    g.drawString(str(r), p.XAxis.transform( self.units.createDatum( PolarX(r, 10) )), p.YAxis.transform( self.units.createDatum(PolarY(r, 10) )))
+        elif(ThetaAxis == 'io_phase'):
+            for r in xrange(0, 36): #handle hourangle tickmarks
+                t = r * TAU / 36
+                x= p.XAxis.transform( self.units.createDatum( cos( t ) * ( 11 ) ) )
+                y= p.YAxis.transform( self.units.createDatum( sin( t ) * ( 11 ) ) )  
+                g.drawLine(int(x0), int(y0), int(x), int(y)) 
+                if(r%3==0): #Draw unit labels for some subset #here I use every multiple of 3
+                    g.drawString(str(r*10), p.XAxis.transform( self.units.createDatum( PolarX(r * 24 / 36, 11) )), p.YAxis.transform( self.units.createDatum(PolarY(r * 24/36, 11) )))
        
 
 #plot the data, break off depending on params
 #Seems not good to have 2 independent params and if statements... 4 seperate code blocks? whatever
 if (CAxis=='dispersionConstant'):
     localTime= getDataSet(ff + '?column=lt')
+    magneticlocalTime = getDataSet(ff + '?column=mlt')
+    iophase = getDataSet(ff + '?column=io_phase')
     dispersionConstant= getDataSet(ff + '?column=dispersionConstant')
     mshell= getDataSet(ff + '?column=mshell')
     radius=getDataSet(ff + '?column=radius')
     
-    if(RAxis == 'mshell'):
-        X=PolarX(localTime, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
-        Y=PolarY(localTime, mshell)
-        plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
-    elif(RAxis == 'radius'):
-        X=PolarX(localTime, radius) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
-        Y=PolarY(localTime, radius)
-        plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+    if(ThetaAxis == 'lt'):
+        if(RAxis == 'mshell'):
+            X=PolarX(localTime, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
+            Y=PolarY(localTime, mshell)
+            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+        elif(RAxis == 'radius'):
+            X=PolarX(localTime, radius) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
+            Y=PolarY(localTime, radius)
+            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+    elif(ThetaAxis == 'mlt'):
+        if(RAxis == 'mshell'):
+            X=PolarX(magneticlocalTime, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
+            Y=PolarY(magneticlocalTime, mshell)
+            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+        elif(RAxis == 'radius'):
+            X=PolarX(magneticlocalTime, radius) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
+            Y=PolarY(magneticlocalTime, radius)
+            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+    elif(ThetaAxis == 'io_phase'):
+        if(RAxis == 'mshell'):
+            X=PolarX(iophase * 24/360, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
+            Y=PolarY(iophase * 24/360, mshell)
+            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+        elif(RAxis == 'radius'):
+            X=PolarX(iophase * 24/360, radius) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
+            Y=PolarY(iophase * 24/360, radius)
+            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
         
 elif(CAxis == 'YMD'):  
     yymmdd= getDataSet(ff + '?column=YMD')
-    dates= [ '20220523', '20220224', '20210902', '20201230', '20201108', \
-       '20201107', '20200725', '20200602', '20200410', '20200217', \
-       '20191226', '20191103']
+    #print(int(list(uniqValues(yymmdd, None)))) #haha so we have 42 unique yyyymmdd's now so I've gotta fix this
+#    temp = []
+#    presort = uniqValues(yymmdd, None)
+#    s = sort(presort)
+#    sortedd=presort[s]
+#
+#    for i in list(uniqValues(sortedd, None)):
+#        temp.append(int(i))
+#    print(temp)
+    #dates= [ '20220523', '20220224', '20210902', '20201230', '20201108', '20201107', '20200725', '20200602', '20200410', '20200217', '20191226', '20191103']
+    dates = ['20170327', '20190212', '20191103', '20191226', '20200217', '20200410', '20200602', '20200725', '20200915', '20201107', \
+    '20201108', '20201230', '20210608', '20210902', '20220224', '20220523', '20220817', '20220929', '20231122']
     setLayoutOverplot(len(dates))
     colors= [ 0xFF9EDAE5, 0xFF17BECF, 0xFFBCBD22, 0xFFC7C7C7, 0xFFF7B6D2, \
               0xFFC49C94, 0xFF8C564B, 0xFF9467BD, 0xFFD62728, 0xFF98DF8A, \
-              0xFFFFBB78, 0xFFAEC7E8] #This is a bit of a hardcoded solution but it works. Just would need to add on any new dates and colors
+              0xFFFFBB78, 0xFFAEC7E8, 0x9DF82E, 0xFF5ABA1D, 0xFFE71B30, \
+              0xFF421F03, 0xFF9E750B, 0xFF1A6E73, 0xFF37C65D] #This is a bit of a hardcoded solution but it works. Just would need to add on any new dates and colors
               #Means we can't like automatically cull out specific dates but again it works so eh
     
     for i in xrange(len(dates)):
