@@ -1,7 +1,9 @@
 reset()
-p1= getParam('Variable', 'None','Moon Footprint',['Io', 'Europa', 'None'] )
+p1= getParam('MoonFootprint', 'None','Moon Footprint',['Io', 'Europa', 'None'] )
 plotBoth = getParam('FootprintPoints', 'One Footprint','Near and Far Footprint Points',['Both Sets', 'One Footprint'] )
 CAxis= getParam( 'Color Axis', 'Dispersion', 'What should the color represent', ['Dispersion','Altitude'] )
+Background= getParam( 'Background', 'Jupiter', 'What should the Background be', ['Jupiter','Magnetic'] )
+
 
 ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
 #ff = '/home/ajmilne/Desktop/Whistler-Research/WhistlerData.csv'
@@ -20,8 +22,13 @@ altitude=getDataSet(ff + '?column=radius')
 setLayoutOverplot(5)
 
 if(plotBoth == 'One Footprint'):
-    #plot background jupiter image, whistler locations
-    plot( 0, 'https://research-git.uiowa.edu/abbith/juno/-/blob/main/resources/PIA07782_hires.jpg?xaxis=[0, 0, 360,  2048]&yaxis=[-90, 0, 90, 1024]')
+    #plot background jupiter image
+    if(Background == 'Jupiter'):
+        plot( 0, 'https://research-git.uiowa.edu/abbith/juno/-/blob/main/resources/PIA07782_hires.jpg?xaxis=[0, 0, 360,  2048]&yaxis=[-90, 0, 90, 1024]')
+    elif(Background == 'Magnetic'):
+        plot( 0, 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/jgre21806-fig-0005-m.jpg?xaxis=[0, 100, 360, 2048]&yaxis=[-90, 0, 90, 1024]')
+        
+    #Now add whistlers    
     if(CAxis == 'Dispersion'):
         plot( 1, longitude, latitude, dispersionConstant, symbolSize=10, ztitle = 'Dispersion Constant', xtitle = 'SYS III Longitude', ytitle = 'Latitude') 
         #plot( 2, blah, blah) #Come back to and add medium whistler seperation. Somehow. 
