@@ -4,7 +4,7 @@ reset()
 #Options
 binSize= getParam( 'binSize', 0.1, 'Size of mshell bin to use in histograms')
 whistlerCorrection= getParam( 'Multisecond Whistler Correction?', 'No Correction', 'Setting to change first histogram from number of whistlers to number of data windows whistlers were captured in. Default is disabled correction' , ['No Correction', 'Enable Correction'])
-
+CountSurvey = getParam( 'Is Survey Counted', 'Not Counted', 'Are whistlers seen in burst mode included in this histogram trio?', ['Not Counted', 'Counted'])
 #Data Import
 mshells= getDataSet( 'file:///home/jbf/project/juno/waveformIntervals/ap1/waveforms_$x.dat?field2' )
 ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
@@ -12,27 +12,40 @@ whistlerMShell=getDataSet(ff + '?column=mshell&time=YMD&timeFormat=$Y$m$d+$H$M$S
 whistlerIDNum=getDataSet(ff + '?column=idnum&time=YMD&timeFormat=$Y$m$d+$H$M$S')
 whistlerStartTime=getDataSet(ff + '?column=startSSM&time=YMD&timeFormat=$Y$m$d+$H$M$S')
 whistlerEndTime=getDataSet(ff + '?column=stopSSM&time=YMD&timeFormat=$Y$m$d+$H$M$S')
+BurstorSurvey=getDataSet(ff + '?column=burstOrSurvey&time=YMD&timeFormat=$Y$m$d+$H$M$S')
 
 #Lets handle duplicate whistlers now
 whistlerMShellCorrected = []
 whistlerLengthCorrected = [] #This will represent how many data snapshots we see of a whistler
+whistlerBurstorSurveyCorrected = []
 for i in uniqValues(whistlerIDNum, None):
     temp = where(eq(whistlerIDNum, dataset(i)))
     #temp is the index values we need to access. We are going to make new storage for whistlerMShell and whistlerLength using values we pull here
     #longer of the whistlers between electric and magnetic will get priority
-    tempDataShell, tempDataStart, tempDataEnd=[], [], [] #Initialize 3 arrays to hold data for a unique whistlerIDNum index
-    
+    tempDataShell, tempDataStart, tempDataEnd, tempDataBorS=[], [], [], [] #Initialize 4 arrays to hold data for a unique whistlerIDNum index
     for j in temp: #so these will hold 1 or 2 numbers each, Electric and Magnetic component lengths
         tempDataShell=append(dataset(whistlerMShell[int(j)]), dataset(tempDataShell)) #really we can assume whistler components happen on same mshell, since they might differ by a couple seconds only. So probably not needed to do this
         tempDataStart=append(dataset(whistlerStartTime[int(j)]), dataset(tempDataStart)) #but lengths can and do change, magnetic was usually noisier so would last shorter
         tempDataEnd=append(dataset(whistlerEndTime[int(j)]), dataset(tempDataEnd))
+        tempDataBorS=append(dataset(BurstorSurvey[int(j)] == 'Burst'), dataset(tempDataBorS)) #Survey will be False, Burst will be True
         
     tempLength = subtract(dataset(tempDataEnd),dataset(tempDataStart))
     #print('Whistler ID:', i, 'Lengths:', list(tempLength)) #Diagnostics, reads off whistler ID numbers and the calculated lengths
     #Some whistlers appear to have 0.0s whistler lengths... which is a problem for future me to fix. However, I need to use celining function eventually, so I will just exception 0.0 to be 1 
     whistlerMShellCorrected = append(dataset(whistlerMShellCorrected), dataset(max(tempDataShell))) #These options should be essentially the same, so max works
     whistlerLengthCorrected = append(dataset(whistlerLengthCorrected), dataset(ceil(max(tempLength)+0.0001))) #Choosing the longer whistler in Electric/Magnetic to be the 'primary' one for plotting. And rounding lengths up to next integer
-       
+    whistlerBurstorSurveyCorrected = append(dataset(whistlerBurstorSurveyCorrected), dataset(tempDataBorS))
+    
+
+
+#Filter out Survey if needed
+if(CountSurvey == 'Not Counted'):
+    Data = zip(whistlerMShellCorrected, whistlerLengthCorrected, whistlerBurstorSurveyCorrected) #First time using zip, seems like I should have been using it more lol
+    whistlerMShellCorrected = [mshell for mshell, length, BorS in Data if BorS==True] #If this works this is such a sleeker way of handling data like this
+    whistlerLengthCorrected = [length for mshell, length, BorS in Data if BorS==True]
+    whistlerMShellCorrected = dataset(whistlerMShellCorrected)
+    whistlerLengthCorrected=dataset(whistlerLengthCorrected)
+    
 r= extent(xtags(whistlerMShell))
 print 'mshells: ', mshells
 mshells= mshells[where(within( xtags(mshells),r ))]
@@ -44,12 +57,8 @@ if(whistlerCorrection=='No Correction'):
     r= where( whistlerMShellCorrected.lt(0.005).or(whistlerMShellCorrected.gt(11.005)) )
     print r, 'outside 0.005 to 11.005'
     whistlersByMShell= histogram(whistlerMShellCorrected,0.005,11.005,binSize)
-    p,_= plot( 0, whistlersByMShell )
+    p,_= plot( 0, whistlersByMShell, xtitle='mshell')
     annotation( 0, plotId=p.id, anchorPosition='NW', text='Number of Whistlers Observed' )
-    #Quick diagnostic to make sure this works, we expext 427 unique whistlers
-#    print(len(whistlerMShellCorrected)), 'len of list'
-#    print(sum(whistlersByMShell)), 'sum of histogram' #It got 402 uh oh
-#    print(list(whistlerLengthCorrected))
     
 elif(whistlerCorrection=='Enable Correction'):#Logic is that correction is just having whistlers count as many times as datawindows they show up in. Equivilent to whistler length ceilinged
     #And to actually do this I'm just going to loop over each whistler and add it length many times to our whistler histogram
@@ -62,13 +71,13 @@ elif(whistlerCorrection=='Enable Correction'):#Logic is that correction is just 
     print(list(dump))
     whistlersByMShell= histogram(dataset(dump),0.005,11.005,binSize)        
     normalizeBy= histogram(mshells,0.005,11.005,binSize)
-    p,_= plot( 0, whistlersByMShell )
+    p,_= plot( 0, whistlersByMShell, xtitle='mshell')
     annotation( 0, plotId=p.id, anchorPosition='NW', text='Number of Whistler Datawindows Observed' )
     
-p,_= plot( 1, normalizeBy )
+p,_= plot( 1, normalizeBy, xtitle='mshell' )
 annotation( 1, plotId=p.id, anchorPosition='NW', text='Burst Packets (total observations)' )
 
-p,_= plot( 2, whistlersByMShell / normalizeBy * 100, ytitle='% observed' )
+p,_= plot( 2, whistlersByMShell / normalizeBy * 100, ytitle='% observed', xtitle = 'mshell')
 annotation( 2, plotId=p.id, anchorPosition='NW', text='Whistlers (% of observations)' )
 
 bind( dom.plots[0].xaxis, 'range', dom.plots[1].xaxis, 'range' )
