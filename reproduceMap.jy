@@ -11,7 +11,7 @@ latitude=getDataSet(ff + '?column=plottedFootlat')
 longitude=getDataSet(ff + '?column=plottedFootlon')
 dispersionConstant=getDataSet(ff + '?column=dispersionConstant')
 whistlerID = getDataSet(ff + '?column=idnum') #Whistlers 182 and 156 are for sure medium. Might add a different thing for them to highlight? Like plot them with a different shape
-mediumWhistlers = [182, 156] #a list of any medium ones manually updated. Footprint lat/lon are manually tracked in the main spreadsheet. 
+mediumWhistlers = [182, 156, 1004, 1070, 1059, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069, 1060, 1061, 1104, 1106] #a list of any medium ones manually updated. Footprint lat/lon are manually tracked in the main spreadsheet. 
 latitudeNear=getDataSet(ff + '?column=footlatClose')
 longitudeNear=getDataSet(ff + '?column=footlonClose')
 latitudeFar=getDataSet(ff + '?column=footlatFar')
