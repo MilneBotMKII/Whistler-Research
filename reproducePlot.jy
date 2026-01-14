@@ -1,6 +1,6 @@
 from org.das2.graph import LegendPosition
 p= getParam( 'p', 0, 'parameter p (default=0.0)' , [0, 1, 2, 3, 4, 5])
-source= getParam('Variable','altitude','X Axis',['altitude', 'radius', 'mshell', 'io_phase', 'lt', 'mlt', 'lat', 'footlat', 'centrifugal_lat', 'jovigraphic_lat', 'longitude', 'footlon'] )
+source= getParam('Variable','YMD','X Axis',['altitude', 'radius', 'mshell', 'io_phase', 'lt', 'mlt', 'lat', 'footlat', 'centrifugal_lat', 'jovigraphic_lat', 'longitude', 'footlon', 'YMD'] )
 #print(source)
 #print(getDataSet(PWD + 'JeremyNewPlots.csv?column=YMD'))
 ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
@@ -12,16 +12,38 @@ yymmdd= getDataSet( ff + '?column=YMD' )
 #for u1 in u:
 #    print '%d' % yymmdd[u1]
     
-dates= [ '20220523', '20220224', '20210902', '20201230', '20201108', \
-   '20201107', '20200725', '20200602', '20200410', '20200217', \
-   '20191226', '20191103' ]
+dates = ['20170327', '20190212', '20191103', '20191226', '20200217', '20200410', '20200602', '20200725', '20200915', '20201107', \
+'20201108', '20201230', '20210608', '20210902', '20220224', '20220523', '20220817', '20220929', '20231122']
+setLayoutOverplot(len(dates))
 colors= [ 0xFF9EDAE5, 0xFF17BECF, 0xFFBCBD22, 0xFFC7C7C7, 0xFFF7B6D2, \
           0xFFC49C94, 0xFF8C564B, 0xFF9467BD, 0xFFD62728, 0xFF98DF8A, \
-          0xFFFFBB78, 0xFFAEC7E8, 0xFF1F77B4 ] #This is a bit of a hardcoded solution but it works. Just would need to add on any new dates and colors
-          #Means we can't like automatically cull out specific dates but again it works so eh
+          0xFFFFBB78, 0xFFAEC7E8, 0x9DF82E, 0xFF5ABA1D, 0xFFE71B30, \
+          0xFF421F03, 0xFF9E750B, 0xFF1A6E73, 0xFF37C65D] #This is a bit of a hardcoded solution but it works. Just would need to add on any new dates and colors
+      #Means we can't like automatically cull out specific dates but again it works so eh
 #setLayoutOverplot( len(dates) )
-
-for i in xrange(len(dates)):
-    plot( i, ff + '?column=dispersionConstant&depend0=' + source + '&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i], \
-          symbolSize=10, lineStyle='none', color= colors[i], yrange=[2e1,9e3], ylog=True, legendLabel=dates[i], xtitle=source, ytitle='Dispersion Constant' , overplotOf=dom.plots[p])
-dom.plots[p].legendPosition= LegendPosition.OutsideNE
+#if(source == 'YMD'):
+#    for i in xrange(len(dates)):
+#        plot( i, ff + '?column=dispersionConstant&depend0=' + source + '&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i], \
+#                  symbolSize=10, lineStyle='none', color= colors[i], yrange=[2e1,9e3], ylog=True, legendLabel=dates[i], xtitle=source, ytitle='Dispersion Constant' , overplotOf=dom.plots[p])
+#        dom.plots[p].legendPosition= LegendPosition.OutsideNE
+        
+if(source == 'YMD'):
+    for i in xrange(len(dates)):
+        url = (ff +
+           '?column=dispersionConstant' +
+           '&depend0=YMD' +
+           '&dep0Format=$Y$m$d' +
+           '&where=YMD.eq(%s)' % dates[i])
+               
+        plot(i, url,
+             symbolSize=10, lineStyle='none',
+             color=colors[i], yrange=[2e1,9e3], ylog=True,
+             legendLabel=dates[i], xtitle='Date',
+             ytitle='Dispersion Constant',
+             overplotOf=dom.plots[p])
+    
+else:
+    for i in xrange(len(dates)):
+        plot( i, ff + '?column=dispersionConstant&depend0=' + source + '&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i], \
+              symbolSize=10, lineStyle='none', color= colors[i], yrange=[2e1,9e3], ylog=True, legendLabel=dates[i], xtitle=source, ytitle='Dispersion Constant' , overplotOf=dom.plots[p])
+    dom.plots[p].legendPosition= LegendPosition.OutsideNE
