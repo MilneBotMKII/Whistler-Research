@@ -5,11 +5,23 @@ ThetaAxis= getParam( 'Angular Axis', 'lt', 'Angular Axis', ['lt', 'mlt', 'io_pha
 ff= 'https://github.com/MilneBotMKII/Whistler-Research/blob/main/WhistlerData.csv'
 import math as math
 
+allR= getDataSet( PWD + 'output/mlt_rad_*.cdf?radius',units=None )
+allMLT= getDataSet( PWD + 'output/mlt_rad_*.cdf?mlt' )
+allIOPhase= getDataSet( PWD + 'output/mlt_rad_*.cdf?iophase' )
+
+allLT= getDataSet( PWD + 'output/mlt_rad_*.cdf?lt' )
+allMShell= getDataSet( PWD + 'output/mlt_rad_*.cdf?mshell' )
+
+# extent(allMLT) is 0 to 24.
+
 #Conversions from polar to cartesian coordinates, since lt is an hourangle(24 in a full circle we use 15 degrees per unit
 def PolarX(hourangle, radius):
-    return(radius*sin(hourangle*15*math.pi/180))
+    dd= (radius*sin(hourangle*15*math.pi/180))
+    return dd
+    
 def PolarY(hourangle, radius):
-    return(radius*cos(hourangle*15*math.pi/180))
+    dd= (radius*cos(hourangle*15*math.pi/180))
+    return dd
     
 #testing Jeremy polar code, modified to work for this specific case
 from org.das2.graph import Painter,DasDevicePosition
@@ -71,34 +83,44 @@ if (CAxis=='dispersionConstant'):
     mshell= getDataSet(ff + '?column=mshell')
     radius=getDataSet(ff + '?column=radius')
     
+    setLayoutOverplot(2)
+    setCanvasSize(800,600)
+    
     if(ThetaAxis == 'lt'):
         if(RAxis == 'mshell'):
+            plot( 0, PolarX(allLT,allMShell), PolarY(allLT,allMShell), lineStyle='none', symbol='circles', color='grey', renderType='scatter' )
             X=PolarX(localTime, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
             Y=PolarY(localTime, mshell)
-            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+            plot(1, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
         elif(RAxis == 'radius'):
+            plot( 0, PolarX(allLT,allR), PolarY(allLT,allR), color='grey', lineStyle='none', symbol='circles', renderType='scatter' )
             X=PolarX(localTime, radius) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
             Y=PolarY(localTime, radius)
-            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+            plot(1, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
     elif(ThetaAxis == 'mlt'):
         if(RAxis == 'mshell'):
+            plot( 0, PolarX(allMLT,allMShell), PolarY(allMLT,allMShell), lineStyle='none', symbol='circles', color='grey', renderType='scatter' )
             X=PolarX(magneticlocalTime, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
             Y=PolarY(magneticlocalTime, mshell)
-            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+            plot(1, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
         elif(RAxis == 'radius'):
+            plot( 0, PolarX(allMLT,allR), PolarY(allMLT,allR), color='grey', lineStyle='none', symbol='circles', renderType='scatter' )
             X=PolarX(magneticlocalTime, radius) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
             Y=PolarY(magneticlocalTime, radius)
-            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+            plot(1, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
     elif(ThetaAxis == 'io_phase'):
         if(RAxis == 'mshell'):
+            plot( 0, PolarX(allIOPhase*24/360.,allMShell), PolarY(allIOPhase*24/360.,allMShell), lineStyle='none', symbol='circles', color='grey', renderType='scatter' )
             X=PolarX(iophase * 24/360, mshell) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
             Y=PolarY(iophase * 24/360, mshell)
-            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+            plot(1, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
         elif(RAxis == 'radius'):
+            plot( 0, PolarX(allIOPhase*24/360.,allR), PolarY(allIOPhase*24/360.,allR), lineStyle='none',  symbol='circles', color='grey', renderType='scatter' )
             X=PolarX(iophase * 24/360, radius) #take the hour angle and convert everything to cartesian coordinates, scale by mshell number
             Y=PolarY(iophase * 24/360, radius)
-            plot(0, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
-        
+            plot(1, X, Y, dispersionConstant, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False)
+    dom.plots[0].xaxis.range= datumRange('-14.25 to 15.25')
+    
 elif(CAxis == 'YMD'):  
     yymmdd= getDataSet(ff + '?column=YMD')
     #print(int(list(uniqValues(yymmdd, None)))) #haha so we have 42 unique yyyymmdd's now so I've gotta fix this
@@ -120,6 +142,8 @@ elif(CAxis == 'YMD'):
               0xFF421F03, 0xFF9E750B, 0xFF1A6E73, 0xFF37C65D] #This is a bit of a hardcoded solution but it works. Just would need to add on any new dates and colors
               #Means we can't like automatically cull out specific dates but again it works so eh
     
+    plot( 0, PolarX(allMLT,allR), PolarY(allMLT,allR), color='grey' )
+    
     for i in xrange(len(dates)):
         #We basically group all the data within a YMD and plot one group at a time. URI magic below
         localTime = getDataSet(ff + '?column=lt&timeFormat=$Y$m$d+$H$M$S&where=YMD.eq(%s)' % dates[i]) #Thanks Jeremy for doing this in a different script
@@ -131,30 +155,30 @@ elif(CAxis == 'YMD'):
             if(RAxis == 'mshell'):
                 X=PolarX(localTime, mshell)
                 Y=PolarY(localTime, mshell)
-                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+                plot(i+1, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
             elif(RAxis == 'radius'):
                 X=PolarX(localTime, radius)
                 Y=PolarY(localTime, radius)
-                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+                plot(i+1, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
         elif(ThetaAxis == 'mlt'):
             if(RAxis == 'mshell'):
                 X=PolarX(magneticlocalTime, mshell)
                 Y=PolarY(magneticlocalTime, mshell)
-                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+                plot(i+1, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
             elif(RAxis == 'radius'):
                 X=PolarX(magneticlocalTime, radius)
                 Y=PolarY(magneticlocalTime, radius)
-                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+                plot(i+1, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
                 
         elif(ThetaAxis == 'io_phase'):
             if(RAxis == 'mshell'):
                 X=PolarX(iophase * 24/360, mshell)
                 Y=PolarY(iophase * 24/360, mshell)
-                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+                plot(i+1, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
             elif(RAxis == 'radius'):
                 X=PolarX(iophase * 24/360, radius)
                 Y=PolarY(iophase * 24/360, radius)
-                plot(i, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
+                plot(i+1, X, Y, symbolSize=10, isotropic=True, title='Local Time', xdrawTickLabels=False, ydrawTickLabels=False, renderType='scatter', color=colors[i], legendLabel=dates[i])
 
 ap= AxisPainter(dom.plots[0])
 dom.canvases[0].controller.dasCanvas.addBottomDecorator( ap )
